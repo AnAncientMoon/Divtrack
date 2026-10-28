@@ -1,0 +1,42 @@
+# Sequences used in the paper. Replace /path/to/data by the folder created with the scripts in
+# scripts/prepare_data/ (see README, "Data"). Only `train` is read by scripts/train.py; `test` lists
+# the held-out sequences and the ground truth used for evaluation (never read during training).
+train:                                   # pooled training set, in this order
+  - name: ce01
+    image_dir: /path/to/data/Fluo-N3DH-CE/01
+    mask_dir: /path/to/data/Fluo-N3DH-CE/01_ERR_SEG
+    voxel_um: [1.0, 0.09, 0.09]
+  - name: ms1
+    image_dir: /path/to/data/mskcc-s1/01
+    mask_dir: /path/to/data/mskcc-s1/01_ERR_SEG
+    voxel_um: [0.75, 0.15, 0.15]
+  - name: ms2
+    image_dir: /path/to/data/mskcc-s2/01
+    mask_dir: /path/to/data/mskcc-s2/01_ERR_SEG
+    voxel_um: [0.75, 0.15, 0.15]
+test:
+  - name: ce02
+    image_dir: /path/to/data/Fluo-N3DH-CE/02
+    mask_dir: /path/to/data/Fluo-N3DH-CE/02_ERR_SEG
+    gt_dir: /path/to/data/Fluo-N3DH-CE/02_GT
+    voxel_um: [1.0, 0.09, 0.09]
+  - name: ms3
+    image_dir: /path/to/data/mskcc-s3/01
+    mask_dir: /path/to/data/mskcc-s3/01_ERR_SEG
+    gt_dir: /path/to/data/mskcc-s3/01_GT
+    voxel_um: [0.75, 0.15, 0.15]
+  - name: nih1                           # zero-shot (never used during development)
+    image_dir: /path/to/data/nihls-1/01
+    mask_dir: /path/to/data/nihls-1/01_ERR_SEG
+    gt_dir: /path/to/data/nihls-1/01_GT
+    voxel_um: [0.1625, 0.1625, 0.1625]
+  - name: nih2
+    image_dir: /path/to/data/nihls-2/01
+    mask_dir: /path/to/data/nihls-2/01_ERR_SEG
+    gt_dir: /path/to/data/nihls-2/01_GT
+    voxel_um: [0.1625, 0.1625, 0.1625]
+  - name: nih3
+    image_dir: /path/to/data/nihls-3/01
+    mask_dir: /path/to/data/nihls-3/01_ERR_SEG
+    gt_dir: /path/to/data/nihls-3/01_GT
+    voxel_um: [0.1625, 0.1625, 0.1625]

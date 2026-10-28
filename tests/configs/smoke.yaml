@@ -1,0 +1,14 @@
+# Overrides for the training smoke test (tests/smoke_training.sh): a few small subsets, one seed,
+# short schedules and lowered minimum counts. Not for real training.
+judge:
+  epochs: 2
+  seeds: [0]
+  min_positives: 5
+state_head:
+  epochs: 3
+  min_train_positives: 3
+  min_val_positives: 1
+runtime:
+  solver_workers: 4
+  patch_workers: 4
+  mask_workers: 4

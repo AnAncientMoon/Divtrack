@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "divtrack"
+version = "1.0.0"
+description = "Zero-annotation lineage tracking of nuclei with a learned division score (C. elegans embryos)"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Tong Hu"}, {name = "Hironori Shigeta"}, {name = "Fuyu Zheng"}, {name = "Shigeto Seno"}]
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "tifffile", "imagecodecs", "PyYAML", "torch"]
+
+[project.optional-dependencies]
+eval = ["py-ctcmetrics==1.3.3"]
+
+[tool.setuptools]
+packages = ["divtrack"]

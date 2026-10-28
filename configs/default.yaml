@@ -1,0 +1,81 @@
+# divtrack: every hyperparameter of the published model, in one place.
+#
+# Lengths are in units of the cell spacing s, the median nearest-neighbour distance
+# between detected nuclei over the whole sequence. s is measured from the detection
+# masks at run time (it can be overridden with --spacing-um).
+#
+# The values below are the ones used for the released weights. Changing them changes
+# the method; do not edit them for zero-shot inference.
+
+geometry:
+  max_move: 3.0              # continuation x_ij exists if d_ij <= 3 s; its cost is d_ij / 3
+  softmax_tau: 0.1           # temperature of the distance softmax that ranks candidate daughters
+  daughter_topk: 4           # each mother pairs up its 4 top-ranked cells of frame t+1
+  max_sister_dist: 3.0       # hyperedge x_ijk requires |x_j - x_k| <= 3 s
+  max_mother_dist: 2.0       # ... and max(|x_i - x_j|, |x_i - x_k|) <= 2 s
+
+cost:
+  division_offset: 0.5       # c_div in c_ijk = (d_ij + d_ik)/3 + c_div - lambda * F_ijk
+  score_weight: 0.03         # lambda
+  prob_clip: 1.0e-6          # judge probabilities are clipped to [1e-6, 1 - 1e-6], i.e. |z| <= 13.8155
+  score_clip: 1000.0         # clip applied to z and F (never active, kept for exactness)
+  birth_label: 2.0           # birth cost of every solve used for training (labels, epoch selection)
+  birth_deploy: 1.0          # birth cost at deployment, fixed at 1: the largest continuation cost within
+                             # the gate (d_ij / 3 <= 1 for d_ij <= 3)
+
+patches:
+  scale: 1.5                 # side of the cubic image patch = 1.5 s (physical units)
+  shape: [11, 32, 32]        # resampling grid (z, y, x)
+  low_quantile: 0.01         # per-patch intensity normalisation
+  high_quantile: 0.999
+
+rules:                       # training-label rules; the same rules give the label-free rule count
+  min_daughter_frames: 10    # both daughter tracks last >= 10 frames
+  min_mother_frames: 6       # the mother track exists >= 6 frames, counting the division frame t
+  volume_ratio: [0.6, 1.6]   # (V_j + V_k) / V_i, voxel counts of the given detection masks
+
+split:                       # per training sequence: frames used for epoch/early-stopping checks
+  dev_start: 0.35            # development frames = [round(0.35 N), +round(0.30 N))
+  dev_fraction: 0.30
+  guard_frames: 2            # frames on both sides of the development block that are used by nobody
+
+judge:                       # triplet network z_ijk
+  feature_dim: 96
+  epochs: 8
+  batch_size: 64
+  lr: 3.0e-4
+  weight_decay: 1.0e-4
+  pos_weight_cap: 200        # positive weight of the BCE = min(N- / N+, 200)
+  swap_daughters_p: 0.5      # random daughter order per batch; a no-op for the symmetric network but it
+                             # consumes the random stream, so keep 0.5 to reproduce the released weights
+  min_positives: 30
+  seeds: [0, 1, 2, 3, 4]
+
+state_head:                  # mother state head u_i on the frozen encoder of the selected triplet network
+                             # (positives = mothers of the training labels)
+  hidden: 32
+  heads: 4
+  epochs: 16
+  batch_size: 256
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  min_train_positives: 30
+  min_val_positives: 10
+  reliable:                  # negatives = cells on a reliable continuation
+    max_disp: 0.5            # mutual nearest neighbours, displacement <= 0.5 s,
+    min_nn_ratio: 2.0        # second-nearest at least 2x farther (both directions),
+    volume_ratio: [0.8, 1.25]  # and volume ratio in [0.8, 1.25], for t-1 -> t -> t+1 -> t+2
+
+fusion:                      # F_ijk = z_ijk + w_u * u_i, w_u fitted on development frames
+                             # (positives = training labels)
+  l2: 1.0e-3
+  z_clip: 13.815510557964274
+  score_batch: 4096
+
+runtime:
+  score_chunk: 512           # candidates per forward pass when scoring a frame pair
+  encode_batch: 512          # cells per forward pass when encoding patches for the state head
+  state_batch: 2048
+  mask_workers: 6            # processes writing CTC masks
+  solver_workers: 6          # processes solving frame-pair integer programs
+  patch_workers: 6           # processes extracting image patches

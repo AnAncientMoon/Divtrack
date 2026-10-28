@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# environments
+env/
+.venv/
+
+# data, results and work files never go into the repository
+/data/
+/runs/
+/results/
+*_work/
+*.npz
+*.npy
+*.tif
+*.tiff
+*.zip
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

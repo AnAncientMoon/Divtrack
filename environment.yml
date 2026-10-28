@@ -1,0 +1,15 @@
+# conda env create -f environment.yml
+# PyTorch 2.13.0 with CUDA 13.0 (the verified build). For another CUDA version or CPU only, replace
+# "cu130" below by e.g. cu126 or cpu (https://pytorch.org/get-started/previous-versions/).
+name: divtrack
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - --index-url https://download.pytorch.org/whl/cu130
+      - --extra-index-url https://pypi.org/simple
+      - torch==2.13.0
+      - -r requirements.txt
