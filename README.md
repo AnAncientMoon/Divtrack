@@ -1,6 +1,6 @@
 # Divtrack
 
-Code for the paper "Efficient Self-Supervised 3D Cell Tracking by Integer Programming with Visual Evidence of Division" by Tong Hu, Hironori Shigeta, Fuyu Zheng and Shigeto Seno, submitted to ISBI 2027.
+Code for the paper "Efficient 3D Cell Tracking by Integer Programming and Self-Supervised Division Detection" by Tong Hu, Hironori Shigeta, Fuyu Zheng, Yuki Matsumoto and Shigeto Seno, submitted to ISBI 2027.
 
 ## Installation
 
@@ -76,8 +76,8 @@ The first command tracks and evaluates CE/02, mskcc s3 and nih-ls 1-3 with the f
 
 ```bibtex
 @unpublished{hu2026divtrack,
-  title  = {Efficient Self-Supervised {3D} Cell Tracking by Integer Programming with Visual Evidence of Division},
-  author = {Hu, Tong and Shigeta, Hironori and Zheng, Fuyu and Seno, Shigeto},
+  title  = {Efficient {3D} Cell Tracking by Integer Programming and Self-Supervised Division Detection},
+  author = {Hu, Tong and Shigeta, Hironori and Zheng, Fuyu and Matsumoto, Yuki and Seno, Shigeto},
   note   = {Submitted to the IEEE International Symposium on Biomedical Imaging (ISBI) 2027},
   year   = {2026}
 }
