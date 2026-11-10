@@ -91,6 +91,9 @@ class Sequence:
         self._load_detections(cache_file, workers)
         self.spacing_auto = self._median_spacing()
         self.spacing = float(spacing_um) if spacing_um else self.spacing_auto
+        if not np.isfinite(self.spacing):
+            raise ValueError("cannot measure the cell spacing s because no frame has two or more detections; "
+                             "give it with --spacing-um (scripts/infer.py) or spacing_um in the datasets file")
         # A fixed origin (the volume centre) keeps positions comparable across frames.
         self.center_um = np.asarray(self.vol_shape, dtype=np.float64) / 2.0 * self.voxel
 

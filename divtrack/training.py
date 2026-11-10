@@ -147,6 +147,8 @@ def train_state_head(data, cfg, seed, device, log):
                   val_pos=int((lab[iva] == 1).sum()), val_neg=int((lab[iva] == 0).sum()))
     if counts["train_pos"] < S["min_train_positives"] or counts["val_pos"] < S["min_val_positives"]:
         raise RuntimeError("too few state-head positives: %s" % counts)
+    if counts["train_neg"] < 1 or counts["val_neg"] < 1:
+        raise RuntimeError("no state-head negatives (cells on a reliable continuation): %s" % counts)
     net = MotherStateHead(d=F.shape[2], hidden=S["hidden"], heads=S["heads"]).to(device)
     Ft = torch.from_numpy(F).to(device)
     Vt = torch.from_numpy(V).to(device)
@@ -249,6 +251,30 @@ class _Seq:
         return lin.ctc(self.labels_per_frame)
 
 
+def check_train_settings(root, cfg, train_specs):
+    """A training folder is only resumed with the same settings and training sequences.
+
+    Finished steps are skipped on a rerun, so a rerun with other rules, costs or network settings would
+    silently keep the old labels and models. The runtime block and the list of seeds may change."""
+    conf = {k: v for k, v in cfg.items() if k != "runtime"}
+    conf["judge"] = {k: v for k, v in cfg["judge"].items() if k != "seeds"}
+    seqs = [{k: s.get(k) for k in ("name", "voxel_um", "spacing_um")} for s in train_specs]
+    now = json.loads(json.dumps({"config": conf, "sequences": seqs}))
+    path = os.path.join(root, "train_settings.json")
+    if not os.path.exists(path):
+        with open(path, "w") as f:
+            json.dump(now, f, indent=1)
+        return
+    with open(path) as f:
+        old = json.load(f)
+    if old != now:
+        changed = sorted(k for k in set(old["config"]) | set(now["config"]) if old["config"].get(k) != now["config"].get(k))
+        if old["sequences"] != now["sequences"]:
+            changed.append("training sequences")
+        raise RuntimeError("%s was used with other settings (changed: %s); its finished steps would be reused. "
+                           "Train in a new --work-dir." % (root, ", ".join(changed)))
+
+
 class Trainer:
     def __init__(self, cfg, train_specs, work_dir, device="cuda", seeds=None, log=print):
         self.cfg = cfg
@@ -258,6 +284,7 @@ class Trainer:
         self.seeds = list(cfg["judge"]["seeds"] if seeds is None else seeds)
         self.log = log
         os.makedirs(self.root, exist_ok=True)
+        check_train_settings(self.root, cfg, train_specs)
         save_config(cfg, os.path.join(self.root, "config_used.yaml"))
         self.rec_path = os.path.join(self.root, "records.json")
         self.rec = json.load(open(self.rec_path)) if os.path.exists(self.rec_path) else {}

@@ -7,7 +7,8 @@ official CTC measures. The call is
 
 (``--lnk`` needs ``--tra``; without it py-ctcmetrics 1.3.3 returns an empty output.)
 BIO uses BC(1), the division F1 score with a tolerance of one frame, so we report
-OP_CLB = (LNK + BIO(1)) / 2 with BIO(1) = mean(CT, TF, BC(1), CCA).
+OP_CLB = (LNK + BIO(1)) / 2 with BIO(1) = mean(CT, TF, BC(1), CCA). Measures that ctc_evaluate prints as N/A
+(BC and CCA of a sequence without divisions) are returned as NaN and printed as n/a.
 """
 import os
 import re
@@ -32,7 +33,8 @@ def evaluate(gt_dir, res_dir, threads=4):
            "--ct", "--tf", "--bc", "1", "--cca", "--num-threads", str(threads)]
     r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     lines = [l for l in r.stdout.splitlines() if re.match(r"^(%s):" % "|".join(re.escape(k) for k in KEYS), l)]
-    vals = {k: float(v) for k, v in re.findall(r"(\S+): ([-\d.eE]+)", "\n".join(lines))}
+    vals = {k: float("nan") if v == "N/A" else float(v)
+            for k, v in re.findall(r"(\S+): (N/A|[-\d.eE]+)", "\n".join(lines))}
     if "LNK" not in vals or "BIO(1)" not in vals:
         raise RuntimeError("ctc_evaluate failed:\n" + "\n".join(r.stdout.splitlines()[-20:]))
     vals["OP_CLB"] = (vals["LNK"] + vals["BIO(1)"]) / 2.0
@@ -40,6 +42,10 @@ def evaluate(gt_dir, res_dir, threads=4):
 
 
 def format_metrics(v):
-    return ("OP_CLB %.5f | LNK %.5f BIO(1) %.5f | TRA %.5f DET %.5f | CT %.5f TF %.5f BC(1) %.5f CCA %.5f | divisions TP/FP/FN %d/%d/%d"
-            % (v["OP_CLB"], v["LNK"], v["BIO(1)"], v["TRA"], v["DET"], v["CT"], v["TF"], v["BC(1)"], v["CCA"],
-               v["tp_div(1)"], v["fp_div(1)"], v["fn_div(1)"]))
+    def num(key, fmt="%.5f"):
+        x = v.get(key, float("nan"))
+        return "n/a" if x != x else fmt % x
+
+    return ("OP_CLB %s | LNK %s BIO(1) %s | TRA %s DET %s | CT %s TF %s BC(1) %s CCA %s | divisions TP/FP/FN %s/%s/%s"
+            % (num("OP_CLB"), num("LNK"), num("BIO(1)"), num("TRA"), num("DET"), num("CT"), num("TF"), num("BC(1)"),
+               num("CCA"), num("tp_div(1)", "%d"), num("fp_div(1)", "%d"), num("fn_div(1)", "%d")))
