@@ -1,0 +1,19 @@
+# Versions of the environment in which this repository was verified
+# (Linux x86_64, Python 3.11.17, torch 2.13.0+cu130; see README "Installation").
+# Install PyTorch first, for your CUDA version or for CPU only, e.g.
+#   pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cu130
+# then:
+#   pip install -r requirements.txt
+numpy==2.4.6
+scipy==1.17.1
+tifffile==2026.3.3
+imagecodecs==2026.3.6
+PyYAML==6.0.3
+# evaluation with the Cell Tracking Challenge measures (ctc_evaluate) and its dependencies
+py-ctcmetrics==1.3.3
+pandas==3.0.3
+scikit-learn==1.9.0
+joblib==1.5.3
+threadpoolctl==3.6.0
+python-dateutil==2.9.0.post0
+six==1.17.0
