@@ -45,13 +45,13 @@ def main():
                     cfg=load_config(a.config), device=a.device, birth_cost=a.birth_cost, geometry_only=a.geometry_only,
                     spacing_um=a.spacing_um, work_dir=a.work_dir, workers=a.workers, threads=a.threads, name=a.name)
     if a.gt_dir:
-        from divtrack.evaluate import evaluate, format_metrics
+        from divtrack.evaluate import evaluate, format_metrics, json_safe
         m = evaluate(a.gt_dir, a.out_dir)
         print("evaluation:", format_metrics(m), flush=True)
         summary["evaluation"] = m
         work = a.work_dir or os.path.abspath(a.out_dir).rstrip("/") + "_work"
         with open(os.path.join(work, "summary.json"), "w") as f:
-            json.dump(summary, f, indent=1)
+            json.dump(json_safe(summary), f, indent=1, allow_nan=False)
 
 
 if __name__ == "__main__":

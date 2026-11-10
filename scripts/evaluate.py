@@ -14,7 +14,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
 
 from divtrack.config import load_config  # noqa: E402
-from divtrack.evaluate import evaluate, format_metrics  # noqa: E402
+from divtrack.evaluate import evaluate, format_metrics, json_safe  # noqa: E402
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
         print("divisions declared %d, passing the rules %d" % (n_decl, n_pass))
     if a.json:
         with open(a.json, "w") as f:
-            json.dump(m, f, indent=1)
+            json.dump(json_safe(m), f, indent=1, allow_nan=False)
 
 
 if __name__ == "__main__":

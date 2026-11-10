@@ -8,8 +8,9 @@ official CTC measures. The call is
 (``--lnk`` needs ``--tra``; without it py-ctcmetrics 1.3.3 returns an empty output.)
 BIO uses BC(1), the division F1 score with a tolerance of one frame, so we report
 OP_CLB = (LNK + BIO(1)) / 2 with BIO(1) = mean(CT, TF, BC(1), CCA). Measures that ctc_evaluate prints as N/A
-(BC and CCA of a sequence without divisions) are returned as NaN and printed as n/a.
+(BC and CCA of a sequence without divisions) are returned as NaN, printed as n/a and written as null in JSON files.
 """
+import math
 import os
 import re
 import shutil
@@ -17,6 +18,18 @@ import subprocess
 import sys
 
 KEYS = ("TRA", "DET", "LNK", "CT", "TF", "BC(1)", "CCA", "BIO(1)", "tp_div(1)", "fp_div(1)", "fn_div(1)")
+
+
+
+def json_safe(obj):
+    """Copy of ``obj`` with NaN and infinities replaced by None (null): they are not valid JSON."""
+    if isinstance(obj, dict):
+        return {k: json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [json_safe(v) for v in obj]
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return None
+    return obj
 
 
 def find_ctc_evaluate():

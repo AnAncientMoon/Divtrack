@@ -20,7 +20,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
 
 from divtrack.config import load_config  # noqa: E402
-from divtrack.evaluate import evaluate  # noqa: E402
+from divtrack.evaluate import evaluate, json_safe  # noqa: E402
 from divtrack.inference import track  # noqa: E402
 
 
@@ -53,7 +53,7 @@ def main():
             results.setdefault(d["name"], {})[tag] = m
             print("RESULT %-8s %-14s OP_CLB %.5f" % (d["name"], tag, m["OP_CLB"]), flush=True)
     with open(os.path.join(a.out, "results.json"), "w") as f:
-        json.dump(results, f, indent=1)
+        json.dump(json_safe(results), f, indent=1, allow_nan=False)
     print("\nsequence   OP_CLB (mean +- sd over %d run%s)" % (len(seeds), "s" if len(seeds) > 1 else ""))
     for name, per in results.items():
         v = np.array([m["OP_CLB"] for m in per.values()])

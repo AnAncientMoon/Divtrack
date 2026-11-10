@@ -25,6 +25,7 @@ import numpy as np
 from .cells import make_split, reliable_continuations, state_targets
 from .config import save_config
 from .data import Sequence, CellTable
+from .evaluate import json_safe
 from .inference import check_work_dir
 from .patches import build_patch_tables, load_patch_tables
 from .rules import make_labels, rule_count
@@ -262,6 +263,11 @@ def check_train_settings(root, cfg, train_specs):
     now = json.loads(json.dumps({"config": conf, "sequences": seqs}))
     path = os.path.join(root, "train_settings.json")
     if not os.path.exists(path):
+        made = [n for n in sorted(os.listdir(root)) if n in ("records.json", "datasets") or n.startswith("seed")]
+        if made:
+            raise RuntimeError("%s already holds training results (%s) but no record of their settings (it was "
+                               "made by an older version of this code); train in a new --work-dir."
+                               % (root, ", ".join(made[:4])))
         with open(path, "w") as f:
             json.dump(now, f, indent=1)
         return
@@ -295,7 +301,7 @@ class Trainer:
     def _save_rec(self):
         tmp = self.rec_path + ".tmp"
         with open(tmp, "w") as f:
-            json.dump(self.rec, f, indent=1, sort_keys=True)
+            json.dump(json_safe(self.rec), f, indent=1, sort_keys=True, allow_nan=False)
         os.replace(tmp, self.rec_path)
 
     def _set(self, key, value):
@@ -475,7 +481,7 @@ class Trainer:
             res = {"w_u": wu, "w_v": 0.0, "intercept": b0, "intercept_deployed": False, "form": "zu", "z_clip": F_["z_clip"],
                    "train_ds": [d.name for d in self.ds], "judge_epoch": e, **info}
             with open(out, "w") as f:
-                json.dump(res, f, indent=1)
+                json.dump(json_safe(res), f, indent=1, allow_nan=False)
             self._set("fusion/s%d" % s, dict(w_u=wu, intercept=b0, **info))
             self.log("fusion seed %d: w_u = %.4f (development positives %d, negatives %d, AUC %s)"
                      % (s, wu, info["n_pos"], info["n_neg"], {k: round(v, 4) for k, v in info["auc_dev"].items()}))

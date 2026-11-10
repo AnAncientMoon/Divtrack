@@ -7,6 +7,7 @@ import numpy as np
 
 from .config import load_config
 from .data import Sequence, CellTable
+from .evaluate import json_safe
 from .rules import rule_count
 from .tracking import (Candidates, Solver, write_ctc, division_costs_fused, division_costs_geometry_only)
 
@@ -144,6 +145,6 @@ def track(image_dir, mask_dir, voxel_um, out_dir, weights_dir=None, cfg=None, de
     summary.update({"birth_cost": b, "n_tracks": n_tracks, "declared_divisions": n_decl, "rule_passing_divisions": n_pass,
                     "rule_pass_rate": n_pass / n_decl if n_decl else 0.0, "seconds": round(time.time() - t_start, 1)})
     with open(os.path.join(work_dir, "summary.json"), "w") as f:
-        json.dump(summary, f, indent=1)
+        json.dump(json_safe(summary), f, indent=1, allow_nan=False)
     log("wrote %s (%d tracks, %d divisions, birth cost %.1f) in %.0f s" % (out_dir, n_tracks, n_decl, b, time.time() - t_start))
     return summary
